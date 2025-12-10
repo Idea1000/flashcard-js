@@ -1,6 +1,7 @@
 {
   "name": "flashcard",
   "version": "1.0.0",
+  "type": "module",
   "description": "",
   "main": "src/server.js",
   "scripts": {
@@ -13,13 +14,16 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@libsql/client": "^0.15.15",
     "bcrypt": "^6.0.0",
     "dotenv": "^17.2.3",
+    "drizzle-orm": "^0.45.0",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "zod": "^4.1.13"
   },
   "devDependencies": {
+    "drizzle-kit": "^0.31.8",
     "nodemon": "^3.1.11"
   }
 }
