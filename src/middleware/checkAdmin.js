@@ -25,7 +25,7 @@ export const checkAdmin = async (req, res, next) => {
     } catch(error){
         console.log(error)
         return res.status(401).send({
-            error: "You are a "
+            error: "YYou are a not allowed to see this information"
         })
     }
 }
