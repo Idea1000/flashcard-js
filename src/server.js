@@ -12,6 +12,9 @@ const app = express()
 
 app.use(express.json())
 
+// Request -> express.json() -> Logger -> Controller -> Response
+// app.use('{route}', {router})
+app.use('/collection', collectionRoutes)
 app.use('/auth', authRoutes)
 app.use('/users', userRoutes)
 app.use('/flashcard', flashcardRoutes)
