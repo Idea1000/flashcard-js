@@ -1,5 +1,6 @@
 import { db } from "./database.js"
-import { levelsTable } from "./schema.js"
+import { levelsTable, usersTable } from "./schema.js"
+import bcrypt from "bcrypt"
 
 async function seed() {
     try{
@@ -35,6 +36,31 @@ async function seed() {
         await db
             .insert(levelsTable)
             .values(seedLevels)
+            .returning()
+
+
+        await db.delete(usersTable)
+
+        const seedUsers = [
+            {
+                "email": "admin@admin.com",
+                "name": "admin",
+                "firstname": "admin",
+                "password": await bcrypt.hash("adminpassword", 12),
+                "role": "ADMIN"
+            },
+            {
+                "email": "user@user.com",
+                "name": "user",
+                "firstname": "user",
+                "password": await bcrypt.hash("userpassword", 12),
+                "role": "USER"
+            },
+        ]
+
+        await db
+            .insert(usersTable)
+            .values(seedUsers)
             .returning()
 
         console.log("Database seeded successfully")
