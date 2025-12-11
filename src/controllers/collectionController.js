@@ -1,7 +1,7 @@
 import { db  } from "../db/database.js"
 import { collectionsTable, usersTable } from "../db/schema.js"
 import { request, response } from 'express'
-import { eq, and, or } from "drizzle-orm"
+import { eq, and, or, like } from "drizzle-orm"
 
 /**
  * 
@@ -9,17 +9,41 @@ import { eq, and, or } from "drizzle-orm"
  * @param {response} res 
  */
 export const getPublicCollections = async (req, res) => {
+    const { name } = req.params
+
     try {
-        const result = await db
+        let result
+        if (name !== undefined) {
+            result = await db
             .select({
-                id,
-                title,
-                description,
+                id: collectionsTable.id,
+                title: collectionsTable.title,
+                description: collectionsTable.description,
                 creatorName: usersTable.name
             })
             .from(collectionsTable)
             .fullJoin(usersTable, eq(usersTable.id, collectionsTable.creatorId))
-            .where(eq(collectionsTable.visibility, "PUBLIC"))
+            .where(
+                and(
+                    eq(collectionsTable.visibility, "PUBLIC"),
+                    like(collectionsTable.title, `%${name}%`)
+                )
+            )
+        } else {
+            result = await db
+            .select({
+                id: collectionsTable.id,
+                title: collectionsTable.title,
+                description: collectionsTable.description,
+                creatorName: usersTable.name
+            })
+            .from(collectionsTable)
+            .fullJoin(usersTable, eq(usersTable.id, collectionsTable.creatorId))
+            .where(
+                eq(collectionsTable.visibility, "PUBLIC"),    
+            )
+        }
+        
 
         res.status(200).json(result)
     } catch (error) {
@@ -40,19 +64,25 @@ export const getCollectionById = async (req, res) => {
     try {
         const [result] = await db
             .select({
-                id,
-                title,
-                description,
-                visibility,
+                id: collectionsTable.id,
+                title: collectionsTable.title,
+                description: collectionsTable.description,
+                visibility: collectionsTable.visibility,
                 creatorName: usersTable.name
             })
             .from(collectionsTable)
+            .fullJoin(usersTable, eq(usersTable.id, collectionsTable.creatorId))
             .where(
                 and(
                     or(
-                        // Is either public or owned by user
+                        // Is either public or {see below}
                         eq(collectionsTable.visibility, "PUBLIC"),
-                        eq(collectionsTable.creatorId, req.userId.userId)
+                        or(
+                            // Is either the creator or an admin
+                            eq(collectionsTable.creatorId, req.userId.userId),
+                            eq(usersTable.role, "ADMIN"),
+                        )
+                        
                     ), 
                     eq(collectionsTable.id, id)
                 )
@@ -73,15 +103,21 @@ export const getCollectionById = async (req, res) => {
  */
 export const getPersonalCollections = async (req, res) => {
     try {
+        console.log("start")
+        console.log(req.userId.userId)
+
         const result = await db
             .select({
-                id,
-                title,
-                description,
-                visibility
+                id: collectionsTable.id,
+                title: collectionsTable.title,
+                description: collectionsTable.description,
+                visibility: collectionsTable.visibility
             })
             .from(collectionsTable)
             .where(eq(collectionsTable.creatorId, req.userId.userId))
+        
+        console.log(result)
+        console.log("end")
 
         res.status(200).json(result)
     } catch (error) {

@@ -8,7 +8,9 @@ const router = Router()
 
 router.use(checkToken)
 
-router.get('/public', getPublicCollections)
+router.get('/public/:name', getPublicCollections)
+// Return all public collections if no name given
+router.get('/public/', getPublicCollections)
 router.get('/:id', getCollectionById)
 router.get('/', getPersonalCollections)
 
