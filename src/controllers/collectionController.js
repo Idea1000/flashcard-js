@@ -1,5 +1,5 @@
 import { db  } from "../db/database.js"
-import { collectionsTable } from "../db/schema.js"
+import { collectionsTable, usersTable } from "../db/schema.js"
 import { request, response } from 'express'
 import { eq, and, or } from "drizzle-orm"
 
@@ -11,8 +11,14 @@ import { eq, and, or } from "drizzle-orm"
 export const getPublicCollections = async (req, res) => {
     try {
         const result = await db
-            .select()
+            .select({
+                id,
+                title,
+                description,
+                creatorName: usersTable.name
+            })
             .from(collectionsTable)
+            .fullJoin(usersTable, eq(usersTable.id, collectionsTable.creatorId))
             .where(eq(collectionsTable.visibility, "PUBLIC"))
 
         res.status(200).json(result)
@@ -36,7 +42,9 @@ export const getCollectionById = async (req, res) => {
             .select({
                 id,
                 title,
-                description
+                description,
+                visibility,
+                creatorName: usersTable.name
             })
             .from(collectionsTable)
             .where(
@@ -66,7 +74,12 @@ export const getCollectionById = async (req, res) => {
 export const getPersonalCollections = async (req, res) => {
     try {
         const result = await db
-            .select()
+            .select({
+                id,
+                title,
+                description,
+                visibility
+            })
             .from(collectionsTable)
             .where(eq(collectionsTable.creatorId, req.userId.userId))
 
