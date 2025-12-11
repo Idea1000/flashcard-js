@@ -1,7 +1,7 @@
 import { db  } from "../db/database.js"
 import { collectionsTable } from "../db/schema.js"
 import { request, response } from 'express'
-import { eq, and } from "drizzle-orm"
+import { eq, and, or } from "drizzle-orm"
 
 /**
  * 
@@ -39,7 +39,16 @@ export const getCollectionById = async (req, res) => {
                 description
             })
             .from(collectionsTable)
-            .where(and(eq(collectionsTable.visibility, "PUBLIC"), eq(collectionsTable.id, id)))
+            .where(
+                and(
+                    or(
+                        // Is either public or owned by user
+                        eq(collectionsTable.visibility, "PUBLIC"),
+                        eq(collectionsTable.creatorId, req.userId.userId)
+                    ), 
+                    eq(collectionsTable.id, id)
+                )
+            )
 
         res.status(200).json(result)
     } catch (error) {
