@@ -4,6 +4,7 @@ import { request, response } from 'express'
 import { eq, and, or, like } from "drizzle-orm"
 
 /**
+ * Get only public collection like name given
  * 
  * @param {request} req 
  * @param {response} res 
@@ -12,9 +13,9 @@ export const getPublicCollections = async (req, res) => {
     const { name } = req.params
 
     try {
-        let result
-        if (name !== undefined) {
-            result = await db
+
+        // Get public collections with a specified name
+        let result = await db
             .select({
                 id: collectionsTable.id,
                 title: collectionsTable.title,
@@ -29,8 +30,26 @@ export const getPublicCollections = async (req, res) => {
                     like(collectionsTable.title, `%${name}%`)
                 )
             )
-        } else {
-            result = await db
+
+        return res.status(200).json(result)
+    } catch (error) {
+        return res.status(500).send({
+            error: "Failed to fetch collections",
+        })
+    }
+}
+
+/**
+ * Get only all public collection
+ * 
+ * @param {request} req 
+ * @param {response} res 
+ */
+export const getAllPublicCollections = async (req, res) => {
+    try {
+
+        // Get public collections
+        let result = await db
             .select({
                 id: collectionsTable.id,
                 title: collectionsTable.title,
@@ -42,18 +61,18 @@ export const getPublicCollections = async (req, res) => {
             .where(
                 eq(collectionsTable.visibility, "PUBLIC"),    
             )
-        }
         
 
-        res.status(200).json(result)
+        return res.status(200).json(result)
     } catch (error) {
-        res.status(500).send({
+        return res.status(500).send({
             error: "Failed to fetch collections",
         })
     }
 }
 
 /**
+ * Get collection with the id info
  * 
  * @param {request} req 
  * @param {response} res 
@@ -62,6 +81,8 @@ export const getCollectionById = async (req, res) => {
     const { id } = req.params
 
     try {
+
+        // Get collection with id that is either public, owned by user or admin
         const [result] = await db
             .select({
                 id: collectionsTable.id,
@@ -88,24 +109,24 @@ export const getCollectionById = async (req, res) => {
                 )
             )
 
-        res.status(200).json(result)
+        return res.status(200).json(result)
     } catch (error) {
-        res.status(500).send({
+        return res.status(500).send({
             error: "Failed to fetch collections",
         })
     }
 }
 
 /**
+ * Get all personal collections
  * 
  * @param {request} req 
  * @param {response} res 
  */
 export const getPersonalCollections = async (req, res) => {
     try {
-        console.log("start")
-        console.log(req.userId.userId)
 
+        // Get all personal collections (owned by user)
         const result = await db
             .select({
                 id: collectionsTable.id,
@@ -115,19 +136,17 @@ export const getPersonalCollections = async (req, res) => {
             })
             .from(collectionsTable)
             .where(eq(collectionsTable.creatorId, req.userId.userId))
-        
-        console.log(result)
-        console.log("end")
 
-        res.status(200).json(result)
+        return res.status(200).json(result)
     } catch (error) {
-        res.status(500).send({
+        return res.status(500).send({
             error: "Failed to fetch collections",
         })
     }
 }
 
 /**
+ * Create a collection
  * 
  * @param {request} req 
  * @param {response} res 
@@ -136,6 +155,7 @@ export const CreateCollection = async (req, res) => {
     try {
         const{title, description, visibility} = req.body
 
+        // Create the collection
         const result = await db
             .insert(collectionsTable)
             .values({
@@ -145,12 +165,12 @@ export const CreateCollection = async (req, res) => {
                 creatorId: req.userId.userId
             })
 
-        res.status(200).json({
-            "message": "Collection created successfuly",
+        return res.status(200).json({
+            message: "Collection created successfuly",
             result
         })
     } catch (error) {
-        res.status(500).send({
+        return res.status(500).send({
             error: "Failed to create collection",
         })
     }
@@ -158,57 +178,56 @@ export const CreateCollection = async (req, res) => {
 
 
 /**
+ * Update collection with specified id
  * 
  * @param {request} req 
  * @param {response} res 
  */
 export const UpdateCollection = async (req, res) => {
     try {
-        const { id, title, description, visibility } = req.body
+        const { id } = req.params
+        const { title, description, visibility } = req.body
 
+        // Check if collection exist and is owned by user
         const [result] = await db
             .select()
             .from(collectionsTable)
             .where(eq(collectionsTable.id, id))
+
+        if (!result) {
+            return res.status(404).send({
+                error: `This collection does not exist !`
+            })
+        }
         
         if (result.creatorId !== req.userId.userId) {
-            res.status(403).send({
-                error: `You can't update other people collection`
+            return res.status(403).send({
+                error: `You can't update other people collection !`
             })
         }
 
-        let update = {}
-        if (title) {
-            update["title"] = title
-        }
-        if (description) {
-            update["description"] = description
-        }
-        if (visibility) {
-            update["visibility"] = visibility
-        }
-
-        const [resultUpdate] = await db
+        // Update collection
+        await db
             .update(collectionsTable)
-            .set(update)
-            .where(eq(collectionsTable.id, id))
-            .returning()
-        if(!resultUpdate){
-            res.status(404).send({
-                error: `Collection ${id} not found`
+            .set({
+                title: title.trim() ?? undefined,
+                description: description.trim() ?? undefined,
+                visibility: visibility.trim() ?? undefined
             })
-        }
-        res.status(200).send({
-            message: `Collection ${id} updated successfuly`
+            .where(eq(collectionsTable.id, id))
+
+        return res.status(200).send({
+            message: `Collection ${id} updated successfuly.`
         })
     } catch (error) {
-        res.status(500).send({
-            error: "Failed to update collection",
+        return res.status(500).send({
+            error: "Failed to update collection !",
         })
     }
 }
 
 /**
+ * Delete collection with specified id
  * 
  * @param {request} req 
  * @param {response} res 
@@ -217,32 +236,35 @@ export const DeleteCollection = async (req, res) => {
     const { id } = req.params
     
     try {
+
+        // Check if collection exist and is owned by user
         const [result] = await db
             .select()
             .from(collectionsTable)
             .where(eq(collectionsTable.id, id))
-        
+
+        if (!result) {
+            return res.status(404).send({
+                error: `This collection does not exist !`
+            })
+        }
         
         if (result.creatorId !== req.userId.userId) {
-            res.status(403).send({
+            return res.status(403).send({
                 error: `You can't delete other people question`
             })
         }
 
-        const [resultDelete] = await db
+        // Delete collection
+        await db
             .delete(collectionsTable)
             .where(eq(collectionsTable.id, id))
             .returning()
-        if(!resultDelete){
-            res.status(404).send({
-                error: `Collection ${id} not found`
-            })
-        }
-        res.status(200).send({
+        return res.status(200).send({
             message: `Collection ${id} deleted successfuly`
         })
     } catch (error) {
-        res.status(500).send({
+        return res.status(500).send({
             error: "Failed to delete collection",
         })
     }
