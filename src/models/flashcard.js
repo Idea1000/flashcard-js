@@ -16,7 +16,7 @@ export const updateFlashcardSchema = z.object({
 })
 
 export const flashcardIdSchema = z.object({
-    id: z.string().uuid("L'ID doit être un UUID valide")
+    flashcardId: z.string().uuid("L'ID doit être un UUID valide")
 })
 
 export const collectionIdSchema = z.object({
