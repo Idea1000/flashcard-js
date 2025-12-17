@@ -199,3 +199,5 @@ Each revision updates:
 - Private collections accessible only by their owner
 
 ---
+
+<div align="center">Made with 💚 in <strong>REST</strong> & 🧠 by passionate devs 🚀</div>
