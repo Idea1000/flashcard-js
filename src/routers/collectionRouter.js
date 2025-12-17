@@ -14,9 +14,9 @@ router.get('/public/', getPublicCollections)
 router.get('/:id', getCollectionById)
 router.get('/', getPersonalCollections)
 
-router.post('/', validateBody(updateCollection), UpdateCollection)
+router.post('/', validateBody(createCollection), CreateCollection)
 
-router.put('/', validateBody(createCollection), CreateCollection)
+router.put('/', validateBody(updateCollection), UpdateCollection)
 
 router.delete('/:id', DeleteCollection)
 
