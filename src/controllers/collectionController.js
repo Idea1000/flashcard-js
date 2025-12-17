@@ -159,8 +159,8 @@ export const CreateCollection = async (req, res) => {
         const result = await db
             .insert(collectionsTable)
             .values({
-                title,
-                description,
+                title: title.trim(),
+                description: description.trim() ?? "",
                 visibility,
                 creatorId: req.userId.userId
             })
