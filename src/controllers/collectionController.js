@@ -210,9 +210,9 @@ export const UpdateCollection = async (req, res) => {
         await db
             .update(collectionsTable)
             .set({
-                title: title.trim() ?? undefined,
-                description: description.trim() ?? undefined,
-                visibility: visibility.trim() ?? undefined
+                title: title ? title.trim() : undefined,
+                description: description ? description.trim() : undefined,
+                visibility: visibility ? visibility.trim() : undefined
             })
             .where(eq(collectionsTable.id, id))
 
