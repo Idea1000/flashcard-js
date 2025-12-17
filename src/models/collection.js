@@ -7,7 +7,6 @@ export const createCollection = z.object({
 })
 
 export const updateCollection = z.object({
-    id: z.uuid(),
     title: z.string().min(1).max(50).optional(),
     description: z.string().min(0).max(200).optional(),
     visibility: z.enum(['PUBLIC', 'PRIVATE']).optional(),
