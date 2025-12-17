@@ -30,6 +30,12 @@ export const getPublicCollections = async (req, res) => {
                     like(collectionsTable.title, `%${name}%`)
                 )
             )
+        
+        if (!result || result.length === 0) {
+            return res.status(404).send({
+                error: `No collections has been found !`
+            })
+        }
 
         return res.status(200).json(result)
     } catch (error) {
@@ -62,11 +68,16 @@ export const getAllPublicCollections = async (req, res) => {
                 eq(collectionsTable.visibility, "PUBLIC"),    
             )
         
+        if (!result || result.length === 0) {
+            return res.status(404).send({
+                error: `No collections has been found !`
+            })
+        }
 
         return res.status(200).json(result)
     } catch (error) {
         return res.status(500).send({
-            error: "Failed to fetch collections",
+            error: "Failed to fetch collections !",
         })
     }
 }
@@ -108,11 +119,17 @@ export const getCollectionById = async (req, res) => {
                     eq(collectionsTable.id, id)
                 )
             )
+        
+        if (!result) {
+            return res.status(404).send({
+                error: `This collection does not exist !`
+            })
+        }
 
         return res.status(200).json(result)
     } catch (error) {
         return res.status(500).send({
-            error: "Failed to fetch collections",
+            error: "Failed to fetch collections !",
         })
     }
 }
@@ -136,11 +153,17 @@ export const getPersonalCollections = async (req, res) => {
             })
             .from(collectionsTable)
             .where(eq(collectionsTable.creatorId, req.userId.userId))
+        
+        if (!result || result.length === 0) {
+            return res.status(404).send({
+                error: `No collections has been found !`
+            })
+        }
 
         return res.status(200).json(result)
     } catch (error) {
         return res.status(500).send({
-            error: "Failed to fetch collections",
+            error: "Failed to fetch collections !",
         })
     }
 }
@@ -159,8 +182,8 @@ export const CreateCollection = async (req, res) => {
         const result = await db
             .insert(collectionsTable)
             .values({
-                title,
-                description,
+                title: title.trim(),
+                description: description.trim() ?? "",
                 visibility,
                 creatorId: req.userId.userId
             })
@@ -171,7 +194,7 @@ export const CreateCollection = async (req, res) => {
         })
     } catch (error) {
         return res.status(500).send({
-            error: "Failed to create collection",
+            error: "Failed to create collection !",
         })
     }
 }
@@ -217,7 +240,7 @@ export const UpdateCollection = async (req, res) => {
             .where(eq(collectionsTable.id, id))
 
         return res.status(200).send({
-            message: `Collection ${id} updated successfuly.`
+            message: `Collection ${id} updated successfuly`
         })
     } catch (error) {
         return res.status(500).send({
@@ -251,7 +274,7 @@ export const DeleteCollection = async (req, res) => {
         
         if (result.creatorId !== req.userId.userId) {
             return res.status(403).send({
-                error: `You can't delete other people question`
+                error: `You can't delete other people question !`
             })
         }
 
@@ -265,7 +288,7 @@ export const DeleteCollection = async (req, res) => {
         })
     } catch (error) {
         return res.status(500).send({
-            error: "Failed to delete collection",
+            error: "Failed to delete collection !",
         })
     }
 }
