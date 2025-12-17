@@ -11,9 +11,11 @@ import { eq } from "drizzle-orm";
  */
 export const createFlashcard = async (req, res) => {
     try {
-        const { collection_id, frontText, backText, frontUrl, backUrl, userId } = req.body;
+        const { collection_id, frontText, backText, frontUrl, backUrl } = req.body;
+        const userId = req.userId.userId;
 
         if (!collection_id || !frontText || !backText || !userId) {
+            console.log(collection_id, frontText, backText, userId)
             return res.status(400).json({
                 error: "Missing required fields: collection_id, frontText, backText, userId"
             });
@@ -71,7 +73,8 @@ export const createFlashcard = async (req, res) => {
 export const getFlashcardById = async (req, res) => {
     try{
         const { id } = req.params;
-        const { userId } = req.body;
+        const userId = req.userId.userId;
+        
         if (!id){
             return res.status(400).json({
                 error : "Flashcard ID is required"
@@ -134,7 +137,7 @@ export const getFlashcardById = async (req, res) => {
 export const getFlashcardInCollecionById = async (req, res) => {
     try {
         const { collectionId } = req.params;
-        const { userId } = req.body;
+        const userId = req.userId.userId;
 
         if (!collectionId) {
             return res.status(400).json({
@@ -188,8 +191,8 @@ export const getFlashcardInCollecionById = async (req, res) => {
 export const getDueFlashcards = async (req, res) => {
     try {
         const { collectionId } = req.params;
-        const { userId } = req.body;
-
+        const userId = req.userId.userId;
+        
         if (!collectionId) {
             return res.status(400).json({
                 error: "Collection ID is required"
@@ -250,7 +253,8 @@ export const getDueFlashcards = async (req, res) => {
 export const updateFlashcard = async (req, res) => {
     try {
         const { id } = req.params;
-        const { userId, frontText, backText, frontUrl, backUrl } = req.body;
+        const { frontText, backText, frontUrl, backUrl } = req.body;
+        const userId = req.userId.userId;
 
         if (!id || !userId) {
             return res.status(400).json({
@@ -302,8 +306,8 @@ export const updateFlashcard = async (req, res) => {
 export const deleteFlashcard = async (req, res) => {
     try {
         const { id } = req.params;
-        const { userId } = req.body;
-
+        const userId = req.userId.userId;
+        
         if (!id || !userId) {
             return res.status(400).json({
                 error: "Flashcard ID and userId are required"
@@ -344,7 +348,8 @@ export const deleteFlashcard = async (req, res) => {
 export const reviseFlashcard = async (req, res) => {
     try {
         const { flashcardId } = req.params;
-        const { userId, newLevel } = req.body;
+        const { newLevel } = req.body;
+        const userId = req.userId.userId;
 
         if (!flashcardId || !userId || newLevel === undefined) {
             return res.status(400).json({
