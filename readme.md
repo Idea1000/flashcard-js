@@ -127,7 +127,7 @@ All collection routes require authentication.
 ```json
 {
   "title": "Biology",
-  "description": "Human anatomy",
+  ["description": null,]
   "visibility": "public | private"
 }
 ```
@@ -153,9 +153,9 @@ All flashcard routes require authentication.
 {
   "frontText": "What is a neuron?",
   "backText": "A nerve cell",
-  "frontUrl": null,
-  "backUrl": null,
   "collection_id": 1
+  ["frontUrl": null,] 
+  ["backUrl": null]
 }
 ```
 
