@@ -7,6 +7,7 @@ import jwt from "jsonwebtoken"
 import 'dotenv/config'
 
 /**
+ * Function to register as user or admin on the app.
  * 
  * @param {request} req 
  * @param {response} res 
@@ -54,9 +55,11 @@ export const register = async (req, res) => {
 }
 
 /**
+ * Function to login as user or admin on the app.
  * 
- * @param {*} req 
- * @param {*} res 
+ * @param {request} req 
+ * @param {response} res
+ * 
  */
 export const login = async(req, res) => {
     try{
