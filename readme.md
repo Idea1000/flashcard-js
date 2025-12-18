@@ -11,7 +11,7 @@ It allows users to create flashcard collections, manage cards, and revise them u
 The API handles:
 - authentication and authorization
 - public, private and draw collections
-- flashcard revision logic
+- flashcard review logic
 - admin-only user management
 
 No frontend is included. This project focuses exclusively on backend architecture.
@@ -173,7 +173,7 @@ All flashcard routes require authentication.
 | ------ | ---------------------------------------------------- | ------------------------------------- | --------- |
 | GET    | `/flashcards/:id`                                    | Retrieve a flashcard by ID            | Connected |
 | GET    | `/flashcards/collection/:collectionId`               | Retrieve flashcards from a collection | Connected |
-| GET    | `/flashcards/collection/:collectionId/revisions/due` | Retrieve flashcards due for revision  | Connected |
+| GET    | `/flashcards/collection/:collectionId/revisions/due` | Retrieve flashcards due for review  | Connected |
 | POST   | `/flashcards`                                        | Create a flashcard                    | Connected |
 | POST   | `/flashcards/:flashcardId/revise`                    | Revise a flashcard                    | Connected |
 | PUT    | `/flashcards/:id`                                    | Update a flashcard                    | Connected |
@@ -217,7 +217,7 @@ Flashcards are organized into 5 levels:
 | 4     | 8 days      |
 | 5     | 16 days     |
 
-Each revision updates:
+Each review updates:
 - repetition level
 - last review date
 - next review date
