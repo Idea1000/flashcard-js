@@ -106,6 +106,16 @@ Authorization: Bearer <your_token>
 |------|----------|-------------|--------|
 | POST | `/auth/register` | Register a new user | Public |
 | POST | `/auth/login` | Authenticate a user and return a JWT | Public |
+#### Authentification request body
+**Register Body**
+```json
+{
+  "email": "johndoe@gmail.com",
+  "name" : "john",
+  "firstname": "doe",
+  "password" : "12345678" <=== 8 characters minimum
+}
+```
 
 ---
 
@@ -124,12 +134,30 @@ All collection routes require authentication.
 | POST   | `/collections/:id/copy`     | Copy a public collection          | 
 | DELETE | `/collections/:id`          | Delete a collection               |
 
-**Collection body**
+#### Collection request body
+**Creation Body**
 ```json
 {
   "title": "Biology",
-  ["description": null,]
-  "visibility": "public | private"
+  ["description": null,
+  "visibility": "public | private | draw"] OPTIONNAL
+}
+```
+
+**Update Body**
+```json
+{
+  ["title": "Biology",
+  "description": null,
+  "visibility": "public | private | draw"] OPTIONNAL
+}
+```
+
+**Copy Body**
+```json
+{
+  ["title": "Biology",
+  "description": null] OPTIONNAL
 }
 ```
 
@@ -147,16 +175,35 @@ All flashcard routes require authentication.
 | DELETE | `/flashcards/:id`                                    | Delete a flashcard                    |
 | POST   | `/flashcards/:flashcardId/revise`                    | Revise a flashcard                    |
 
-
-**Flashcard request body**
+#### Flashcard request body
+**Flashcard creation body**
 ```json
 
 {
   "frontText": "What is a neuron?",
   "backText": "A nerve cell",
   "collection_id": 1
-  ["frontUrl": null,] 
-  ["backUrl": null]
+  ["frontUrl": null,
+  "backUrl": null] OPTIONNAL
+}
+```
+
+**Flashcard update body**
+```json
+
+{
+  ["frontText": "What is a neuron?",
+  "backText": "A nerve cell",
+  "frontUrl": null,
+  "backUrl": null] OPTIONNAL
+}
+```
+
+
+**Flashcard revise creation/update body**
+```json
+{
+  "newLevel: 1
 }
 ```
 
