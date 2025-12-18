@@ -262,7 +262,7 @@ export const createCollection = async (req, res) => {
         const{title, description, visibility} = req.body
 
         // Create the collection
-        const result = await db
+        await db
             .insert(collectionsTable)
             .values({
                 title: title.trim(),
@@ -272,8 +272,7 @@ export const createCollection = async (req, res) => {
             })
 
         return res.status(200).json({
-            message: "Collection created successfuly",
-            result
+            message: "Collection created successfuly"
         })
     } catch (error) {
         return res.status(500).send({
@@ -385,8 +384,9 @@ export const deleteCollection = async (req, res) => {
 export const copyCollection = async (req, res) => {
     try{
         const originalCollectionId = req.params.id
-        const { title, description } = req.body
+        const { title, description, visibility } = req.body
 
+        // Check if collection exist and is public
         const [original] = await db
             .select()
             .from(collectionsTable)
@@ -400,11 +400,12 @@ export const copyCollection = async (req, res) => {
 
         if (original.visibility !== "PUBLIC"){
             return res.status(403).json({
-                message:"Only public collection can be copy"
+                message:"Only public collection can be copied"
             });
         }
 
-        const newTitle = title?.trim()|| `${original.title} - Copy`;
+        // Create the copy
+        const newTitle = title?.trim() || `${original.title} - Copy`;
         const newDescription = description?.trim() ?? original.description;
 
         const [newCollection] = await db
@@ -412,11 +413,12 @@ export const copyCollection = async (req, res) => {
             .values({
                 title: newTitle,
                 description: newDescription,
-                visibility: "PUBLIC",
+                visibility: visibility ?? "PUBLIC",
                 creatorId: req.userId.userId,
             })
             .returning();
         
+        // Copy the flashcards
         const originalFlashcards = await db
             .select()
             .from(flashcardsTable)
@@ -435,12 +437,12 @@ export const copyCollection = async (req, res) => {
         }
 
         return res.status(201).json({
-            message: "Collection copy",
+            message: "Collection copied successfully",
             collection: newCollection,
         });
     }catch (error){
         return res.status(500).send({
-            error: "Failed to copy collection ! : "+error.message,
+            error: "Failed to copy collection ! : "+ error.message,
         })
     }
 }
@@ -461,7 +463,8 @@ export const getAllCollections = async (req, res) => {
                 title: collectionsTable.title,
                 description: collectionsTable.description,
                 visibility: collectionsTable.visibility,
-                creatorName: usersTable.name
+                creatorName: usersTable.name,
+                creatorId: collectionsTable.creatorId
             })
             .from(collectionsTable)
             .leftJoin(usersTable, eq(usersTable.id, collectionsTable.creatorId))
