@@ -1,7 +1,7 @@
 import { db } from '../db/database.js'
 import { usersTable } from '../db/schema.js'
 import { request, response } from 'express'
-import { eq } from "drizzle-orm"
+import { desc, eq } from "drizzle-orm"
 
 /**
  * 
@@ -19,6 +19,7 @@ export const getUsers = async (req, res) => {
             created_at: usersTable.createdAt
         })
             .from(usersTable)
+            .orderBy(desc(usersTable.createdAt))
 
         res.status(200).json(result)
     } catch(error){
@@ -76,15 +77,13 @@ export const deleteUsersById = async (req, res) => {
             .where(eq(usersTable.id, id))
             .returning()
         if(!result){
-            res.status(404).send({
+            return res.status(404).send({
                 error: `User ${id} not found`
             })
         }
         res.status(200).send({
             message: `user ${id} deleted successfuly`
         })
-
-        res.status(200).json(result)
     } catch(error){
         console.log(error)
         return res.status(401).send({

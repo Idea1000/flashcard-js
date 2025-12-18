@@ -27,6 +27,6 @@ router.get('/collection/:collectionId', validateParams(collectionIdSchema), getF
 router.get('/collection/:collectionId/revisions/due', validateParams(collectionIdSchema), getDueFlashcards);
 router.put('/:id', validateParams(flashcardIdSchema), validateBody(updateFlashcardSchema), updateFlashcard);
 router.delete('/:id', validateParams(flashcardIdSchema), deleteFlashcard);
-router.post('/:flashcardId/revise', validateParams(flashcardIdSchema), reviseFlashcard);
+router.post('/:id/revise', validateParams(flashcardIdSchema), reviseFlashcard);
 
 export default router;

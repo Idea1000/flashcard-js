@@ -347,11 +347,11 @@ export const deleteFlashcard = async (req, res) => {
 
 export const reviseFlashcard = async (req, res) => {
     try {
-        const { flashcardId } = req.params;
+        const { id } = req.params;
         const { newLevel } = req.body;
         const userId = req.userId.userId;
 
-        if (!flashcardId || !userId || newLevel === undefined) {
+        if (!id || !userId || newLevel === undefined) {
             return res.status(400).json({
                 error: "flashcardId, userId and new level are required"
             });
@@ -365,7 +365,7 @@ export const reviseFlashcard = async (req, res) => {
             })
             .from(flashcardsTable)
             .innerJoin(collectionsTable, eq(flashcardsTable.collection_id, collectionsTable.id))
-            .where(eq(flashcardsTable.id, flashcardId))
+            .where(eq(flashcardsTable.id, id))
             .limit(1);
 
         if (!flashcard) {
@@ -378,12 +378,23 @@ export const reviseFlashcard = async (req, res) => {
             });
         }
 
+        const [collection] = await db
+            .select()
+            .from(collectionsTable)
+            .where(eq(collectionsTable.id, flashcard.collection_id))
+        
+        if(collection.visibility == "draw"){
+             return res.status(403).json({
+                error: "You can only revise flashcards from public or private collection"
+            });
+        }
+
         const now = new Date();
 
         const [revision] = await db
             .select()
             .from(revisionsTable)
-            .where(eq(revisionsTable.flashcardId, flashcardId))
+            .where(eq(revisionsTable.flashcardId, id))
             .where(eq(revisionsTable.userId, userId))
             .limit(1);
 
@@ -392,7 +403,7 @@ export const reviseFlashcard = async (req, res) => {
                 .insert(revisionsTable)
                 .values({
                     userId,
-                    flashcardId,
+                    id,
                     level: newLevel,
                     lastRevision: now
                 })
