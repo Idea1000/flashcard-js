@@ -1,7 +1,7 @@
 import { db  } from "../db/database.js"
 import { collectionsTable, flashcardsTable, usersTable } from "../db/schema.js"
 import { request, response } from 'express'
-import { eq, and, or, like } from "drizzle-orm"
+import { eq, and, or, like, desc } from "drizzle-orm"
 
 /**
  * Get only public collection like name given
@@ -169,6 +169,89 @@ export const getPersonalCollections = async (req, res) => {
 }
 
 /**
+ * Get all personal "draw" collections
+ * 
+ * @param {request} req 
+ * @param {response} res 
+ */
+export const getDrawCollections = async (req, res) => {
+    try {
+
+        // Get all personal collections (owned by user and draw)
+        const result = await db
+            .select({
+                id: collectionsTable.id,
+                title: collectionsTable.title,
+                description: collectionsTable.description,
+                visibility: collectionsTable.visibility
+            })
+            .from(collectionsTable)
+            .where(
+                and(
+                    eq(collectionsTable.creatorId, req.userId.userId),
+                    eq(collectionsTable.visibility, "DRAW")
+                )
+            )
+        
+        if (!result || result.length === 0) {
+            return res.status(404).send({
+                error: `No collections has been found !`
+            })
+        }
+
+        return res.status(200).json(result)
+    } catch (error) {
+        return res.status(500).send({
+            error: "Failed to fetch collections !",
+        })
+    }
+}
+
+/**
+ * Get all personal "draw" collections
+ * 
+ * @param {request} req 
+ * @param {response} res 
+ */
+export const getDrawCollectionsById = async (req, res) => {
+    try {
+        const { id } = req.params
+
+        // Get personal collection (owned by user and draw) with id
+        const [result] = await db
+            .select({
+                id: collectionsTable.id,
+                title: collectionsTable.title,
+                description: collectionsTable.description,
+                visibility: collectionsTable.visibility
+            })
+            .from(collectionsTable)
+            .where(
+                and(
+                    and(
+                        eq(collectionsTable.creatorId, req.userId.userId),
+                        eq(collectionsTable.visibility, "DRAW")
+                    ),
+                    eq(collectionsTable.id, id)
+                )
+                
+            )
+        
+        if (!result || result.length === 0) {
+            return res.status(404).send({
+                error: `No collection has been found !`
+            })
+        }
+
+        return res.status(200).json(result)
+    } catch (error) {
+        return res.status(500).send({
+            error: "Failed to fetch collection !",
+        })
+    }
+}
+
+/**
  * Create a collection
  * 
  * @param {request} req 
@@ -183,7 +266,7 @@ export const CreateCollection = async (req, res) => {
             .insert(collectionsTable)
             .values({
                 title: title.trim(),
-                description: description.trim() ?? "",
+                description: description ? description.trim() : "",
                 visibility,
                 creatorId: req.userId.userId
             })

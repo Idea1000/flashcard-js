@@ -42,6 +42,6 @@ export const collectionsTable = sqliteTable('collections', {
     id: text().primaryKey().$defaultFn(() => randomUUID()),
     creatorId: text('creator_id').references(() => usersTable.id, { onDelete: 'cascade' }),
     title: text({ length: 50}),
-    description: text({ length: 200}),
-    visibility: text({ length: 20, enum: ["PUBLIC", "PRIVATE"] }).$defaultFn(() => "PUBLIC"),
+    description: text({ length: 200}).$defaultFn(() => ""),
+    visibility: text({ length: 20, enum: ["PUBLIC", "PRIVATE", "DRAW"] }).$defaultFn(() => "PUBLIC"),
 })
