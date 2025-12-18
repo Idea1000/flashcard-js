@@ -10,11 +10,11 @@ It allows users to create flashcard collections, manage cards, and revise them u
 
 The API handles:
 - authentication and authorization
-- public and private collections
+- public, private and draw collections
 - flashcard revision logic
 - admin-only user management
 
-No frontend is required. This project focuses exclusively on backend architecture.
+No frontend is included. This project focuses exclusively on backend architecture.
 
 ---
 
@@ -79,7 +79,7 @@ npm run dev
 and that all. API available at:
 
 ```arduino
-http://localhost:3000
+http://localhost:3000 (by default)
 ```
 
 ---
@@ -103,9 +103,28 @@ Authorization: Bearer <your_token>
 ### 🔑 Authentication
 
 | Method | Endpoint | Description | Access |
-|------|----------|-------------|--------|
-| POST | `/auth/register` | Register a new user | Public |
-| POST | `/auth/login` | Authenticate a user and return a JWT | Public |
+|------|------------------|--------------------------------------|-----------|
+| GET  | `/auth/info`     | Recover connected (JWT) user info    | Connected |
+| POST | `/auth/register` | Register a new user                  | Public    |
+| POST | `/auth/login`    | Authenticate a user and return a JWT | Public    |
+
+**Register body**
+```json
+{
+  "email": {str},
+  "password": {str},
+  "firstname": {str},
+  "name": {str}
+}
+```
+
+**Login body**
+```json
+{
+  "email": {str},
+  "password": {str},
+}
+```
 
 ---
 
@@ -113,23 +132,36 @@ Authorization: Bearer <your_token>
 
 All collection routes require authentication.
 
-| Method | Endpoint                    | Description                       |
-|--------|-----------------------------|-----------------------------------|
-| GET    | `/collections`              | Retrieve personal collections     |
-| GET    | `/collections/:id`          | Retrieve a collection by ID       |
-| GET    | `/collections/public`       | Retrieve all public collections   |
-| GET    | `/collections/public/:name` | Search public collections by name |
-| PUT    | `/collections/:id`          | Update an existing collection     |
-| POST   | `/collections`              | Create a new collection           |
-| POST   | `/collections/:id/copy`     | Copy a public collection          | 
-| DELETE | `/collections/:id`          | Delete a collection               |
+| Method | Endpoint                    | Description                       | Access    |
+|--------|-----------------------------|-----------------------------------| --------- |
+| GET    | `/collections`              | Retrieve personal collections     | Connected |
+| GET    | `/collections/:id`          | Retrieve a collection by ID       | Connected |
+| GET    | `/collections/draw`         | Retrieve personal draw collections| Connected |
+| GET    | `/collections/draw/:id`     | Retrieve a draw collection by ID  | Connected |
+| GET    | `/collections/public`       | Retrieve all public collections   | Connected |
+| GET    | `/collections/public/:name` | Search public collections by name | Connected |
+| GET    | `/collections/admin/`       | Retrieve all collections          | Admin     |
+| POST   | `/collections`              | Create a new collection           | Connected |
+| POST   | `/collections/:id/copy`     | Copy a public collection          | Connected |
+| PUT    | `/collections/:id`          | Update an existing collection     | Connected |
+| DELETE | `/collections/:id`          | Delete a collection (owned only)  | Connected |
+| DELETE | `/collections/admin/:id`    | Delete a collection (any)         | Admin     |
 
-**Collection body**
+**Create collection body**
 ```json
 {
-  "title": "Biology",
-  ["description": null,]
-  "visibility": "public | private"
+  "title": {str},
+  ["description": {str},]
+  "visibility": "PUBLIC | PRIVATE | DRAW"
+}
+```
+
+**Update and Copy collection body**
+```json
+{
+  ["title": {str}],
+  ["description": {str},]
+  ["visibility": "PUBLIC | PRIVATE | DRAW"]
 }
 ```
 
@@ -137,15 +169,15 @@ All collection routes require authentication.
 
 All flashcard routes require authentication.
 
-| Method | Endpoint                                             | Description                           |
-| ------ | ---------------------------------------------------- | ------------------------------------- |
-| POST   | `/flashcards`                                        | Create a flashcard                    |
-| GET    | `/flashcards/:id`                                    | Retrieve a flashcard by ID            |
-| GET    | `/flashcards/collection/:collectionId`               | Retrieve flashcards from a collection |
-| GET    | `/flashcards/collection/:collectionId/revisions/due` | Retrieve flashcards due for revision  |
-| PUT    | `/flashcards/:id`                                    | Update a flashcard                    |
-| DELETE | `/flashcards/:id`                                    | Delete a flashcard                    |
-| POST   | `/flashcards/:flashcardId/revise`                    | Revise a flashcard                    |
+| Method | Endpoint                                             | Description                           | Access    |
+| ------ | ---------------------------------------------------- | ------------------------------------- | --------- |
+| GET    | `/flashcards/:id`                                    | Retrieve a flashcard by ID            | Connected |
+| GET    | `/flashcards/collection/:collectionId`               | Retrieve flashcards from a collection | Connected |
+| GET    | `/flashcards/collection/:collectionId/revisions/due` | Retrieve flashcards due for revision  | Connected |
+| POST   | `/flashcards`                                        | Create a flashcard                    | Connected |
+| POST   | `/flashcards/:flashcardId/revise`                    | Revise a flashcard                    | Connected |
+| PUT    | `/flashcards/:id`                                    | Update a flashcard                    | Connected |
+| DELETE | `/flashcards/:id`                                    | Delete a flashcard                    | Connected |
 
 
 **Flashcard request body**
@@ -164,11 +196,12 @@ All flashcard routes require authentication.
 
 All user endpoints require authentication and admin privileges.
 
-| Method | Endpoint     | Description      |
-| ------ | ------------ | ---------------- |
-| GET    | `/users`     | Get all users    |
-| GET    | `/users/:id` | Get a user by ID |
-| DELETE | `/users/:id` | Delete a user    |
+| Method | Endpoint             | Description             | Access |
+| ------ | -------------------- | ----------------------- | -----  |
+| GET    | `/users`             | Get all users           | Admin  |
+| GET    | `/users/:id`         | Get a user by ID        | Admin  |
+| PUT    | `/users/promote/:id` | Promote user admin role | Admin  |
+| DELETE | `/users/:id`         | Delete a user           | Admin  |
 
 ---
 
@@ -200,5 +233,11 @@ Each revision updates:
 - Private collections accessible only by their owner
 
 ---
+
+## Author
+
+- [BRAULT Matheo](https://github.com/Idea1000)
+- [LAZARRE Louis](https://github.com/SoulLikePlayer)
+- [THEAULT Hugo](https://github.com/hugotheault)
 
 <div align="center">Made with 💚 in <strong>JavaScript</strong> & 🧠 by passionate devs 🚀</div>
