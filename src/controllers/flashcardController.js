@@ -378,6 +378,17 @@ export const reviseFlashcard = async (req, res) => {
             });
         }
 
+        const [collection] = await db
+            .select()
+            .from(collectionsTable)
+            .where(eq(collectionsTable.id, flashcard.collection_id))
+        
+        if(collection.visibility == "draw"){
+             return res.status(403).json({
+                error: "You can only revise flashcards from public or private collection"
+            });
+        }
+
         const now = new Date();
 
         const [revision] = await db
