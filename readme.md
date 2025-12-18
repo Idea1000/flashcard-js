@@ -201,4 +201,4 @@ Each revision updates:
 
 ---
 
-<div align="center">Made with 💚 in <strong>REST</strong> & 🧠 by passionate devs 🚀</div>
+<div align="center">Made with 💚 in <strong>JavaScript</strong> & 🧠 by passionate devs 🚀</div>
