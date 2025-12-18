@@ -1,7 +1,7 @@
 import { db  } from "../db/database.js"
 import { collectionsTable, flashcardsTable, usersTable } from "../db/schema.js"
 import { request, response } from 'express'
-import { eq, and, or, like } from "drizzle-orm"
+import { eq, and, or, like, desc } from "drizzle-orm"
 
 /**
  * Get only public collection like name given
@@ -169,28 +169,110 @@ export const getPersonalCollections = async (req, res) => {
 }
 
 /**
+ * Get all personal "draw" collections
+ * 
+ * @param {request} req 
+ * @param {response} res 
+ */
+export const getDrawCollections = async (req, res) => {
+    try {
+
+        // Get all personal collections (owned by user and draw)
+        const result = await db
+            .select({
+                id: collectionsTable.id,
+                title: collectionsTable.title,
+                description: collectionsTable.description,
+                visibility: collectionsTable.visibility
+            })
+            .from(collectionsTable)
+            .where(
+                and(
+                    eq(collectionsTable.creatorId, req.userId.userId),
+                    eq(collectionsTable.visibility, "DRAW")
+                )
+            )
+        
+        if (!result || result.length === 0) {
+            return res.status(404).send({
+                error: `No collections has been found !`
+            })
+        }
+
+        return res.status(200).json(result)
+    } catch (error) {
+        return res.status(500).send({
+            error: "Failed to fetch collections !",
+        })
+    }
+}
+
+/**
+ * Get all personal "draw" collections
+ * 
+ * @param {request} req 
+ * @param {response} res 
+ */
+export const getDrawCollectionsById = async (req, res) => {
+    try {
+        const { id } = req.params
+
+        // Get personal collection (owned by user and draw) with id
+        const [result] = await db
+            .select({
+                id: collectionsTable.id,
+                title: collectionsTable.title,
+                description: collectionsTable.description,
+                visibility: collectionsTable.visibility
+            })
+            .from(collectionsTable)
+            .where(
+                and(
+                    and(
+                        eq(collectionsTable.creatorId, req.userId.userId),
+                        eq(collectionsTable.visibility, "DRAW")
+                    ),
+                    eq(collectionsTable.id, id)
+                )
+                
+            )
+        
+        if (!result || result.length === 0) {
+            return res.status(404).send({
+                error: `No collection has been found !`
+            })
+        }
+
+        return res.status(200).json(result)
+    } catch (error) {
+        return res.status(500).send({
+            error: "Failed to fetch collection !",
+        })
+    }
+}
+
+/**
  * Create a collection
  * 
  * @param {request} req 
  * @param {response} res 
  */
-export const CreateCollection = async (req, res) => {
+export const createCollection = async (req, res) => {
     try {
         const{title, description, visibility} = req.body
 
         // Create the collection
-        const result = await db
+        await db
             .insert(collectionsTable)
             .values({
                 title: title.trim(),
-                description: description.trim() ?? "",
+                description: description ? description.trim() : "",
                 visibility,
                 creatorId: req.userId.userId
             })
 
         return res.status(200).json({
-            message: "Collection created successfuly",
-            result
+            message: "Collection created successfuly"
         })
     } catch (error) {
         return res.status(500).send({
@@ -206,7 +288,7 @@ export const CreateCollection = async (req, res) => {
  * @param {request} req 
  * @param {response} res 
  */
-export const UpdateCollection = async (req, res) => {
+export const updateCollection = async (req, res) => {
     try {
         const { id } = req.params
         const { title, description, visibility } = req.body
@@ -255,7 +337,7 @@ export const UpdateCollection = async (req, res) => {
  * @param {request} req 
  * @param {response} res 
  */
-export const DeleteCollection = async (req, res) => {
+export const deleteCollection = async (req, res) => {
     const { id } = req.params
     
     try {
@@ -299,11 +381,12 @@ export const DeleteCollection = async (req, res) => {
  * @param {request} req 
  * @param {response} res 
  */
-export const CopyCollection = async (req, res) => {
+export const copyCollection = async (req, res) => {
     try{
         const originalCollectionId = req.params.id
-        const { title, description } = req.body
+        const { title, description, visibility } = req.body
 
+        // Check if collection exist and is public
         const [original] = await db
             .select()
             .from(collectionsTable)
@@ -317,11 +400,12 @@ export const CopyCollection = async (req, res) => {
 
         if (original.visibility !== "PUBLIC"){
             return res.status(403).json({
-                message:"Only public collection can be copy"
+                message:"Only public collection can be copied"
             });
         }
 
-        const newTitle = title?.trim()|| `${original.title} - Copy`;
+        // Create the copy
+        const newTitle = title?.trim() || `${original.title} - Copy`;
         const newDescription = description?.trim() ?? original.description;
 
         const [newCollection] = await db
@@ -329,11 +413,12 @@ export const CopyCollection = async (req, res) => {
             .values({
                 title: newTitle,
                 description: newDescription,
-                visibility: "PUBLIC",
+                visibility: visibility ?? "PUBLIC",
                 creatorId: req.userId.userId,
             })
             .returning();
         
+        // Copy the flashcards
         const originalFlashcards = await db
             .select()
             .from(flashcardsTable)
@@ -352,12 +437,86 @@ export const CopyCollection = async (req, res) => {
         }
 
         return res.status(201).json({
-            message: "Collection copy",
+            message: "Collection copied successfully",
             collection: newCollection,
         });
     }catch (error){
         return res.status(500).send({
-            error: "Failed to copy collection ! : "+error.message,
+            error: "Failed to copy collection ! : "+ error.message,
+        })
+    }
+}
+
+/**
+ * Get all collections (intended for admin usage)
+ * 
+ * @param {request} req 
+ * @param {response} res 
+ */
+export const getAllCollections = async (req, res) => {
+    try {
+
+        // Get public collections with a specified name
+        let result = await db
+            .select({
+                id: collectionsTable.id,
+                title: collectionsTable.title,
+                description: collectionsTable.description,
+                visibility: collectionsTable.visibility,
+                creatorName: usersTable.name,
+                creatorId: collectionsTable.creatorId
+            })
+            .from(collectionsTable)
+            .leftJoin(usersTable, eq(usersTable.id, collectionsTable.creatorId))
+        
+        if (!result || result.length === 0) {
+            return res.status(404).send({
+                error: `No collections has been found !`
+            })
+        }
+
+        return res.status(200).json(result)
+    } catch (error) {
+        return res.status(500).send({
+            error: "Failed to fetch collections",
+        })
+    }
+}
+
+/**
+ * Delete collection with specified id (intended for admin)
+ * 
+ * @param {request} req 
+ * @param {response} res 
+ */
+export const deleteCollectionAdmin = async (req, res) => {
+    const { id } = req.params
+    
+    try {
+
+        // Check if collection exist
+        const [result] = await db
+            .select()
+            .from(collectionsTable)
+            .where(eq(collectionsTable.id, id))
+
+        if (!result) {
+            return res.status(404).send({
+                error: `This collection does not exist !`
+            })
+        }
+
+        // Delete collection
+        await db
+            .delete(collectionsTable)
+            .where(eq(collectionsTable.id, id))
+            .returning()
+        return res.status(200).send({
+            message: `Collection ${id} deleted successfuly`
+        })
+    } catch (error) {
+        return res.status(500).send({
+            error: "Failed to delete collection !",
         })
     }
 }
