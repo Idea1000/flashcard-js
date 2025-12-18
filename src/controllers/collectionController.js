@@ -257,7 +257,7 @@ export const getDrawCollectionsById = async (req, res) => {
  * @param {request} req 
  * @param {response} res 
  */
-export const CreateCollection = async (req, res) => {
+export const createCollection = async (req, res) => {
     try {
         const{title, description, visibility} = req.body
 
@@ -289,7 +289,7 @@ export const CreateCollection = async (req, res) => {
  * @param {request} req 
  * @param {response} res 
  */
-export const UpdateCollection = async (req, res) => {
+export const updateCollection = async (req, res) => {
     try {
         const { id } = req.params
         const { title, description, visibility } = req.body
@@ -338,7 +338,7 @@ export const UpdateCollection = async (req, res) => {
  * @param {request} req 
  * @param {response} res 
  */
-export const DeleteCollection = async (req, res) => {
+export const deleteCollection = async (req, res) => {
     const { id } = req.params
     
     try {
@@ -382,7 +382,7 @@ export const DeleteCollection = async (req, res) => {
  * @param {request} req 
  * @param {response} res 
  */
-export const CopyCollection = async (req, res) => {
+export const copyCollection = async (req, res) => {
     try{
         const originalCollectionId = req.params.id
         const { title, description } = req.body
@@ -441,6 +441,79 @@ export const CopyCollection = async (req, res) => {
     }catch (error){
         return res.status(500).send({
             error: "Failed to copy collection ! : "+error.message,
+        })
+    }
+}
+
+/**
+ * Get all collections (intended for admin usage)
+ * 
+ * @param {request} req 
+ * @param {response} res 
+ */
+export const getAllCollections = async (req, res) => {
+    try {
+
+        // Get public collections with a specified name
+        let result = await db
+            .select({
+                id: collectionsTable.id,
+                title: collectionsTable.title,
+                description: collectionsTable.description,
+                visibility: collectionsTable.visibility,
+                creatorName: usersTable.name
+            })
+            .from(collectionsTable)
+            .leftJoin(usersTable, eq(usersTable.id, collectionsTable.creatorId))
+        
+        if (!result || result.length === 0) {
+            return res.status(404).send({
+                error: `No collections has been found !`
+            })
+        }
+
+        return res.status(200).json(result)
+    } catch (error) {
+        return res.status(500).send({
+            error: "Failed to fetch collections",
+        })
+    }
+}
+
+/**
+ * Delete collection with specified id (intended for admin)
+ * 
+ * @param {request} req 
+ * @param {response} res 
+ */
+export const deleteCollectionAdmin = async (req, res) => {
+    const { id } = req.params
+    
+    try {
+
+        // Check if collection exist
+        const [result] = await db
+            .select()
+            .from(collectionsTable)
+            .where(eq(collectionsTable.id, id))
+
+        if (!result) {
+            return res.status(404).send({
+                error: `This collection does not exist !`
+            })
+        }
+
+        // Delete collection
+        await db
+            .delete(collectionsTable)
+            .where(eq(collectionsTable.id, id))
+            .returning()
+        return res.status(200).send({
+            message: `Collection ${id} deleted successfuly`
+        })
+    } catch (error) {
+        return res.status(500).send({
+            error: "Failed to delete collection !",
         })
     }
 }
