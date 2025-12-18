@@ -113,15 +113,16 @@ Authorization: Bearer <your_token>
 
 All collection routes require authentication.
 
-| Method | Endpoint | Description |
-|------|----------|------------|
-| GET | `/collections` | Retrieve personal collections |
-| GET | `/collections/:id` | Retrieve a collection by ID |
-| GET | `/collections/public` | Retrieve all public collections |
-| GET | `/collections/public/:name` | Search public collections by name |
-| PUT | `/collections/:id` | Update an existing collection |
-| POST | `/collections` | Create a new collection |
-| DELETE | `/collections/:id` | Delete a collection |
+| Method | Endpoint                    | Description                       |
+|--------|-----------------------------|-----------------------------------|
+| GET    | `/collections`              | Retrieve personal collections     |
+| GET    | `/collections/:id`          | Retrieve a collection by ID       |
+| GET    | `/collections/public`       | Retrieve all public collections   |
+| GET    | `/collections/public/:name` | Search public collections by name |
+| PUT    | `/collections/:id`          | Update an existing collection     |
+| POST   | `/collections`              | Create a new collection           |
+| POST   | `/collections/:id/copy`     | Copy a public collection          | 
+| DELETE | `/collections/:id`          | Delete a collection               |
 
 **Collection body**
 ```json

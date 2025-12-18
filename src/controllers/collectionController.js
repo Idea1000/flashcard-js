@@ -1,5 +1,5 @@
 import { db  } from "../db/database.js"
-import { collectionsTable, usersTable } from "../db/schema.js"
+import { collectionsTable, flashcardsTable, usersTable } from "../db/schema.js"
 import { request, response } from 'express'
 import { eq, and, or, like } from "drizzle-orm"
 
@@ -289,6 +289,75 @@ export const DeleteCollection = async (req, res) => {
     } catch (error) {
         return res.status(500).send({
             error: "Failed to delete collection !",
+        })
+    }
+}
+
+/**
+ * Copy collection with specified id
+ * 
+ * @param {request} req 
+ * @param {response} res 
+ */
+export const CopyCollection = async (req, res) => {
+    try{
+        const originalCollectionId = req.params.id
+        const { title, description } = req.body
+
+        const [original] = await db
+            .select()
+            .from(collectionsTable)
+            .where(eq(collectionsTable.id, originalCollectionId));
+        
+        if(!original){
+            return res.status(404).json({
+                message: "Collection not found"
+            });
+        }
+
+        if (original.visibility !== "PUBLIC"){
+            return res.status(403).json({
+                message:"Only public collection can be copy"
+            });
+        }
+
+        const newTitle = title?.trim()|| `${original.title} - Copy`;
+        const newDescription = description?.trim() ?? original.description;
+
+        const [newCollection] = await db
+            .insert(collectionsTable)
+            .values({
+                title: newTitle,
+                description: newDescription,
+                visibility: "PUBLIC",
+                creatorId: req.userId.userId,
+            })
+            .returning();
+        
+        const originalFlashcards = await db
+            .select()
+            .from(flashcardsTable)
+            .where(eq(flashcardsTable.collection_id, originalCollectionId));
+
+        if (originalFlashcards.length > 0) {
+            const copiedFlashcards = originalFlashcards.map((card) => ({
+                collection_id: newCollection.id,
+                frontText: card.frontText,
+                backText: card.backText,
+                frontUrl: card.frontUrl,
+                backUrl: card.backUrl,
+            }));
+
+            await db.insert(flashcardsTable).values(copiedFlashcards);
+        }
+
+        return res.status(201).json({
+            message: "Collection copy",
+            collection: newCollection,
+        });
+    }catch (error){
+        return res.status(500).send({
+            error: "Failed to copy collection ! : "+error.message,
         })
     }
 }
