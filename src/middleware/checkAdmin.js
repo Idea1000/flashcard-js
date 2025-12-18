@@ -5,6 +5,7 @@ import { db } from "../db/database.js"
 import { eq } from "drizzle-orm"
 
 /**
+ * Middleware to check if the user is an admin.
  * 
  * @param {request} req 
  * @param {response} res 
