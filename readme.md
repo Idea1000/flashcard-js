@@ -203,7 +203,7 @@ All flashcard routes require authentication.
 **Flashcard revise creation/update body**
 ```json
 {
-  "newLevel: 1
+  "newLevel": 1
 }
 ```
 
