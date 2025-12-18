@@ -94,3 +94,34 @@ export const deleteUsersById = async (req, res) => {
         })
     }
 }
+
+/**
+ * Function to promote a user to admin by id, only available as administrator.
+ * 
+ * @param {request} req 
+ * @param {response} res 
+ */
+export const promoteUserToAdmin = async (req, res) => {
+    const { id } = req.params
+
+    try {
+        const [result] = await db
+            .update(usersTable)
+            .set({ role: "ADMIN" })
+            .where(eq(usersTable.id, id))
+            .returning()
+        if(!result){
+            return res.status(404).send({
+                error: `User ${id} not found`
+            })
+        }
+        res.status(200).send({
+            message: `user ${id} promoted to admin successfuly`
+        })
+    } catch(error){
+        console.log(error)
+        return res.status(401).send({
+            error: "You are a not allowed to see this information"
+        })
+    }
+}
