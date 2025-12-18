@@ -13,15 +13,18 @@ import { eq } from "drizzle-orm"
  */
 export const checkAdmin = async (req, res, next) => {
     try{
-        if (!usersTable) {
-            return res.status(401).send({
-                error: "You are not logged in"
-            })
-        }
+        
         const [result] = await db
                 .select()
                 .from(usersTable)
                 .where(eq(usersTable.id, req.userId.userId))
+        
+        if (!result) {
+            return res.status(401).send({
+                error: "You are not logged in"
+            })
+        }
+
         if (result.role !== "ADMIN")    {
             return res.status(401).send({
                 error: "You are not an admin"
