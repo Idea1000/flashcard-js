@@ -4,6 +4,7 @@ import { request, response } from 'express'
 import { desc, eq } from "drizzle-orm"
 
 /**
+ * Function to get all users, only available as administrator.
  * 
  * @param {request} req 
  * @param {response} res 
@@ -31,6 +32,7 @@ export const getUsers = async (req, res) => {
 }
 
 /**
+ * Function to get a user by id, only available as administrator.
  * 
  * @param {request} req 
  * @param {response} res 
@@ -64,6 +66,7 @@ export const getUsersById = async (req, res) => {
 }
 
 /**
+ * Function to delete a user by id, only available as administrator.
  * 
  * @param {request} req 
  * @param {response} res 
