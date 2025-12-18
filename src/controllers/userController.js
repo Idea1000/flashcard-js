@@ -4,6 +4,7 @@ import { request, response } from 'express'
 import { desc, eq } from "drizzle-orm"
 
 /**
+ * Function to get all users, only available as administrator.
  * 
  * @param {request} req 
  * @param {response} res 
@@ -31,6 +32,7 @@ export const getUsers = async (req, res) => {
 }
 
 /**
+ * Function to get a user by id, only available as administrator.
  * 
  * @param {request} req 
  * @param {response} res 
@@ -64,6 +66,7 @@ export const getUsersById = async (req, res) => {
 }
 
 /**
+ * Function to delete a user by id, only available as administrator.
  * 
  * @param {request} req 
  * @param {response} res 
@@ -83,6 +86,37 @@ export const deleteUsersById = async (req, res) => {
         }
         res.status(200).send({
             message: `user ${id} deleted successfuly`
+        })
+    } catch(error){
+        console.log(error)
+        return res.status(401).send({
+            error: "You are a not allowed to see this information"
+        })
+    }
+}
+
+/**
+ * Function to promote a user to admin by id, only available as administrator.
+ * 
+ * @param {request} req 
+ * @param {response} res 
+ */
+export const promoteUserToAdmin = async (req, res) => {
+    const { id } = req.params
+
+    try {
+        const [result] = await db
+            .update(usersTable)
+            .set({ role: "ADMIN" })
+            .where(eq(usersTable.id, id))
+            .returning()
+        if(!result){
+            return res.status(404).send({
+                error: `User ${id} not found`
+            })
+        }
+        res.status(200).send({
+            message: `user ${id} promoted to admin successfuly`
         })
     } catch(error){
         console.log(error)
