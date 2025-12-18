@@ -102,3 +102,42 @@ export const login = async(req, res) => {
         })
     }
 }
+
+/**
+ * Function to get authenticated user information.
+ * 
+ * @param {request} req 
+ * @param {response} res
+ */
+export const getAuthInfo = async (req, res) => {
+    try {
+        const userId = req.userId.userId
+
+        const [result] = await db
+            .select({
+                id: usersTable.id,
+                email: usersTable.email,
+                name: usersTable.name,
+                firstname: usersTable.firstname,
+                createdAt: usersTable.createdAt,
+                role: usersTable.role
+            })
+            .from(usersTable)
+            .where(eq(usersTable.id, userId))
+
+        if (!result) {
+            return res.status(404).send({
+                error: "User not found"
+            })
+        }
+
+        res.status(200).json({
+            user: result
+        })
+    } catch (error) {
+        console.error(error)
+        res.status(500).send({
+            error: "Failed to retrieve user information",
+        })
+    }
+}
